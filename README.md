@@ -62,27 +62,26 @@ sns_client = boto3.client("sns")
 def lambda_handler(event, context):
     api_key = os.environ["NBA_API_KEY"]
     sns_topic_arn = os.environ["SNS_TOPIC_ARN"]
-    
     # Example API call (update with actual sportsdata.io endpoint)
     url = f"https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/2025-01-01?key={api_key}"
     response = requests.get(url)
     games = response.json()
     
-    messages = []
+   messages = []
     for game in games:
         message = f"{game['HomeTeam']} {game['HomeTeamScore']} - {game['AwayTeam']} {game['AwayTeamScore']}"
         messages.append(message)
+        
+   final_message = "\n".join(messages) or "No games found"
     
-    final_message = "\n".join(messages) or "No games found"
-    
-    # Publish to SNS
-    sns_client.publish(
+   # Publish to SNS
+   sns_client.publish(
         TopicArn=sns_topic_arn,
         Message=final_message,
         Subject="NBA Score Update"
     )
     
-    return {"status": "ok", "message": final_message}
+   return {"status": "ok", "message": final_message}
 
 
 ## Best Practice: Store your NBA_API_KEY and SNS_TOPIC_ARN in Lambda Environment Variables, not in code.
